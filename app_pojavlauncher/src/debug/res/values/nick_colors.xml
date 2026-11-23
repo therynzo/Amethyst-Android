@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="nick_icon_background">#65A262</color>
+
+    <!-- Nick theme: black base, Minecraft-green buttons (overrides main/res/values/colors.xml) -->
+    <color name="minebutton_color">#4FB043</color>
+    <color name="background_app">#0B0B0D</color>
+    <color name="background_overlay">#2A2A32</color>
+    <color name="background_status_bar">#000000</color>
+    <color name="background_bottom_bar">#101013</color>
+</resources>

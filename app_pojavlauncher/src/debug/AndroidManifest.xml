@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nick Launcher branding overlay (debug builds). Changes only name, icon and launcher orientation. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:icon="@mipmap/nick_launcher"
+        android:label="Nick Launcher"
+        android:roundIcon="@mipmap/nick_launcher_round"
+        tools:replace="android:icon,android:label,android:roundIcon">
+
+        <!-- This is the icon entry on the home screen; its label comes from here -->
+        <activity
+            android:name="net.kdt.pojavlaunch.TestStorageActivity"
+            android:label="Nick Launcher"
+            tools:replace="android:label" />
+
+        <!-- Launcher screen: horizontal (landscape) -->
+        <activity
+            android:name="net.kdt.pojavlaunch.LauncherActivity"
+            android:label="Nick Launcher"
+            android:screenOrientation="sensorLandscape"
+            tools:replace="android:label" />
+    </application>
+</manifest>
