@@ -253,7 +253,7 @@ public final class NickModDeps {
 
     // ------------------------------------------------------------------ scanning
 
-    private static String detectLoader(String versionId) {
+    static String detectLoader(String versionId) {
         String v = versionId.toLowerCase(Locale.ROOT);
         if (v.contains("neoforge")) return "neoforge";
         if (v.contains("forge")) return "forge";
@@ -570,7 +570,7 @@ public final class NickModDeps {
         return s == null ? "" : s.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
     }
 
-    private static String httpGet(String address) {
+    static String httpGet(String address) {
         HttpURLConnection c = null;
         try {
             c = (HttpURLConnection) new URL(address).openConnection();

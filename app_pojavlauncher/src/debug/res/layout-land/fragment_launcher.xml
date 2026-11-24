@@ -147,18 +147,8 @@
                 android:layout_height="@dimen/_36sdp"
                 android:layout_marginBottom="@dimen/_5sdp"
                 android:background="@drawable/nick_card_bg"
-                android:drawableStart="@drawable/nick_ic_news"
-                android:text="@string/mcl_tab_wiki" />
-
-            <com.kdt.mcgui.LauncherMenuButton
-                android:id="@+id/discord_button"
-                style="@style/LauncherMenuButton.Universal"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/_36sdp"
-                android:layout_marginBottom="@dimen/_5sdp"
-                android:background="@drawable/nick_card_bg"
-                android:drawableStart="@drawable/nick_ic_forum"
-                android:text="@string/mcl_button_discord" />
+                android:drawableStart="@drawable/nick_ic_grid"
+                android:text="Mod Browser" />
 
             <com.kdt.mcgui.LauncherMenuButton
                 android:id="@+id/custom_control_button"
