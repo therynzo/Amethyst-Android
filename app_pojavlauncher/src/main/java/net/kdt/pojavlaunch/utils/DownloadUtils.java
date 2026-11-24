@@ -15,7 +15,7 @@ import org.apache.commons.io.*;
 @SuppressWarnings("IOStreamConstructor")
 public class DownloadUtils {
     public static final String USER_AGENT = Tools.APP_NAME;
-    private static final int TIME_OUT = 10000;
+    private static final int TIME_OUT = 30000;
 
     public static void download(String url, OutputStream os) throws IOException {
         download(new URL(url), os);
@@ -142,6 +142,19 @@ public class DownloadUtils {
         }
     }
 
+    private static <T> T downloadWithRetry(Callable<T> downloadFunction) throws IOException {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return downloadFile(downloadFunction);
+            } catch (java.io.FileNotFoundException e) {
+                throw e;
+            } catch (IOException e) {
+                if (attempt >= 5) throw e;
+                try { Thread.sleep(1000L * attempt); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); throw e; }
+            }
+        }
+    }
+
     private static boolean verifyFile(File file, String sha1) {
         return file.exists() && Tools.compareSHA1(file, sha1);
     }
@@ -151,7 +164,7 @@ public class DownloadUtils {
         if(sha1 == null) {
             // If the file exists and we don't know it's SHA1, don't try to redownload it.
             if(outputFile.exists()) return null;
-            else return downloadFile(downloadFunction);
+            else return downloadWithRetry(downloadFunction);
         }
 
         int attempts = 0;
@@ -159,7 +172,16 @@ public class DownloadUtils {
         T result = null;
         while (attempts < 5 && !fileOkay){
             attempts++;
-            downloadFile(downloadFunction);
+            try {
+                downloadFile(downloadFunction);
+            } catch (java.io.FileNotFoundException e) {
+                throw e; // really missing, retrying will not help
+            } catch (IOException e) {
+                // Nick: flaky mobile network (timeouts, resets) -> wait and retry instead of aborting everything
+                if (attempts >= 5) throw e;
+                try { Thread.sleep(1000L * attempts); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); throw e; }
+                continue;
+            }
             fileOkay = verifyFile(outputFile, sha1);
         }
         if(!fileOkay) throw new SHA1VerificationException("SHA1 verifcation failed after 5 download attempts");
