@@ -31,14 +31,13 @@
 
     <com.kdt.mcgui.mcAccountSpinner
         android:id="@+id/account_spinner"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/_110sdp"
         android:layout_height="@dimen/_32sdp"
 
         android:dropDownWidth="wrap_content"
         android:dropDownVerticalOffset="@dimen/_32sdp"
 
         app:layout_constraintEnd_toStartOf="@id/setting_button"
-        app:layout_constraintStart_toEndOf="@id/nick_title"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton

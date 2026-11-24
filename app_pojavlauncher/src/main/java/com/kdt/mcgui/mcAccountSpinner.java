@@ -346,7 +346,9 @@ public class mcAccountSpinner extends AppCompatSpinner implements AdapterView.On
                 Bitmap bitmap = mSelectecAccount.getSkinFace();
                 if(bitmap != null) {
                     mHeadDrawable = new BitmapDrawable(getResources(), bitmap);
-                    view.setCompoundDrawables(mHeadDrawable, null, null, null);
+                    int nickSz = getResources().getDimensionPixelSize(R.dimen._20sdp);
+                    mHeadDrawable.setBounds(0, 0, nickSz, nickSz);
+                    view.setCompoundDrawables(null, null, mHeadDrawable, null); // Nick: head on the right
                 }else{
                     view.setCompoundDrawables(null, null, null, null);
                 }
@@ -378,7 +380,9 @@ public class mcAccountSpinner extends AppCompatSpinner implements AdapterView.On
 
             // Handle the "Add account section"
             if(position == 0) {
-                textview.setCompoundDrawables(ResourcesCompat.getDrawable(parent.getResources(), R.drawable.ic_add, null), null, null, null);
+                Drawable nickAdd = ResourcesCompat.getDrawable(parent.getResources(), R.drawable.ic_add, null);
+                if (nickAdd != null) { int z = parent.getResources().getDimensionPixelSize(R.dimen._20sdp); nickAdd.setBounds(0, 0, z, z); }
+                textview.setCompoundDrawables(null, null, nickAdd, null);
                 deleteButton.setVisibility(View.GONE);
             }
             else {
@@ -386,9 +390,10 @@ public class mcAccountSpinner extends AppCompatSpinner implements AdapterView.On
                 Drawable accountHead = mImageCache.get(username);
                 if (accountHead == null){
                     accountHead = new BitmapDrawable(parent.getResources(), MinecraftAccount.getSkinFace(username));
+                    accountHead.setBounds(0, 0, parent.getResources().getDimensionPixelSize(R.dimen._20sdp), parent.getResources().getDimensionPixelSize(R.dimen._20sdp));
                     mImageCache.put(username, accountHead);
                 }
-                textview.setCompoundDrawables(accountHead, null, null, null);
+                textview.setCompoundDrawables(null, null, accountHead, null);
 
                 deleteButton.setVisibility(View.VISIBLE);
                 deleteButton.setOnClickListener(v -> {

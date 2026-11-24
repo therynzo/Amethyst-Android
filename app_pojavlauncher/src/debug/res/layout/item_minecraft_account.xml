@@ -15,7 +15,8 @@
         android:gravity="center_vertical"
         android:drawablePadding="@dimen/_6sdp"
         android:paddingStart="@dimen/_8sdp"
-        app:drawableStartSize="@dimen/_20sdp"
+        android:paddingEnd="@dimen/_4sdp"
+        app:drawableEndSize="@dimen/_20sdp"
         tools:text="Steve"
         tools:ignore="RtlSymmetry" />
 

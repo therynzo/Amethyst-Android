@@ -20,6 +20,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- dark scrim: the pixel background was too bright -->
+    <View
+        android:id="@+id/nick_scrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#A6070709"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/nick_split"
         android:layout_width="0dp"
@@ -41,6 +52,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- light-black layer only behind the version bar -->
+    <View
+        android:id="@+id/nick_version_panel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/nick_panel_bg"
+        app:layout_constraintBottom_toBottomOf="@id/mc_version_spinner"
+        app:layout_constraintEnd_toEndOf="@id/play_button"
+        app:layout_constraintStart_toStartOf="@id/mc_version_spinner"
+        app:layout_constraintTop_toTopOf="@id/mc_version_spinner" />
+
     <!-- Version picker + edit + big green PLAY button -->
     <com.kdt.mcgui.mcVersionSpinner
         android:id="@+id/mc_version_spinner"
@@ -48,7 +70,7 @@
         android:layout_height="@dimen/_36sdp"
         android:layout_marginStart="@dimen/_8sdp"
         android:layout_marginBottom="@dimen/_8sdp"
-        android:background="@drawable/nick_card_bg"
+        android:background="@android:color/transparent"
         android:drawableEnd="@drawable/spinner_arrow"
         android:paddingStart="@dimen/_4sdp"
         android:paddingEnd="@dimen/_8sdp"
@@ -86,8 +108,22 @@
         app:layout_constraintStart_toEndOf="@id/edit_profile_button"
         app:layout_constraintTop_toTopOf="@+id/mc_version_spinner" />
 
+    <!-- light-black layer behind all menu buttons -->
+    <View
+        android:id="@+id/nick_menu_panel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/nick_panel_bg"
+        app:layout_constraintBottom_toBottomOf="@id/nick_menu_scroll"
+        app:layout_constraintEnd_toEndOf="@id/nick_menu_scroll"
+        app:layout_constraintStart_toStartOf="@id/nick_menu_scroll"
+        app:layout_constraintTop_toTopOf="@id/nick_menu_scroll" />
+
     <!-- Menu cards on the right -->
     <ScrollView
+        android:id="@+id/nick_menu_scroll"
+        android:padding="@dimen/_6sdp"
+        android:clipToPadding="false"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="@dimen/_4sdp"

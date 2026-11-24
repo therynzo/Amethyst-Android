@@ -71,19 +71,8 @@ public class MainMenuFragment extends Fragment {
         } else mInstallJarButton.setOnClickListener(v -> hasNoOnlineProfileDialog(requireActivity()));
         mEditProfileButton.setOnClickListener(v -> mVersionSpinner.openProfileEditor(requireActivity()));
 
-        mPlayButton.setOnClickListener(v -> {
-            if (Tools.hasMods("sodium") && !(LauncherPreferences.DEFAULT_PREF.getBoolean("sodium_override", false))) {
-                AlertDialog sodiumWarningDialog = new AlertDialog.Builder(requireContext())
-                        .setTitle(R.string.sodium_warning_title)
-                        .setMessage(R.string.sodium_warning_message)
-                        .setNeutralButton(R.string.delete_sodium, (d,w)-> {
-                            Tools.deleteSodiumMods();
-                            ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
-                        })
-                        .create();
-                sodiumWarningDialog.show();
-            } else ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
-        });
+        mPlayButton.setOnClickListener(v ->
+                net.kdt.pojavlaunch.nick.NickModDeps.checkBeforeLaunch(requireActivity(), this::startGameChecks));
 
         mShareLogsButton.setOnClickListener((v) -> shareLog(requireContext()));
 
@@ -123,5 +112,19 @@ public class MainMenuFragment extends Fragment {
             Tools.installMod(requireActivity(), isCustomArgs);
         else
             Toast.makeText(requireContext(), R.string.tasks_ongoing, Toast.LENGTH_LONG).show();
+    }
+
+    private void startGameChecks() {
+        if (Tools.hasMods("sodium") && !(LauncherPreferences.DEFAULT_PREF.getBoolean("sodium_override", false))) {
+                AlertDialog sodiumWarningDialog = new AlertDialog.Builder(requireContext())
+                        .setTitle(R.string.sodium_warning_title)
+                        .setMessage(R.string.sodium_warning_message)
+                        .setNeutralButton(R.string.delete_sodium, (d,w)-> {
+                            Tools.deleteSodiumMods();
+                            ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
+                        })
+                        .create();
+                sodiumWarningDialog.show();
+            } else ExtraCore.setValue(ExtraConstants.LAUNCH_GAME, true);
     }
 }
