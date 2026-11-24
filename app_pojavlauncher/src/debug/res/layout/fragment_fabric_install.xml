@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nick Launcher: Fabric / Quilt install screen (same IDs/types as upstream) -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_app"
+    android:padding="@dimen/_10sdp">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/nick_fab_split"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <TextView
+        android:id="@+id/title_textview"
+        style="@style/TextAppearance.AppCompat.Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/fabric_dl_loader_title"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="@dimen/_6sdp"
+        android:background="#5EC84F"
+        app:layout_constraintTop_toBottomOf="@+id/title_textview" />
+
+    <!-- left column: versions -->
+    <TextView
+        android:id="@+id/fabric_installer_label_game_ver"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_6sdp"
+        android:text="@string/fabric_dl_game_version"
+        android:textColor="#8EE07F"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/nick_fab_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/view" />
+
+    <Spinner
+        android:id="@+id/fabric_installer_game_ver_spinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp"
+        android:layout_marginEnd="@dimen/_6sdp"
+        android:background="@drawable/nick_card_bg"
+        android:minHeight="@dimen/_32sdp"
+        android:paddingStart="10dp"
+        android:paddingEnd="28dp"
+        app:layout_constraintEnd_toStartOf="@id/nick_fab_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fabric_installer_label_game_ver" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_8sdp"
+        android:paddingHorizontal="@dimen/_8sdp"
+        android:rotation="180"
+        android:src="@drawable/spinner_arrow"
+        app:layout_constraintBottom_toBottomOf="@+id/fabric_installer_game_ver_spinner"
+        app:layout_constraintEnd_toEndOf="@+id/fabric_installer_game_ver_spinner"
+        app:layout_constraintTop_toTopOf="@+id/fabric_installer_game_ver_spinner" />
+
+    <TextView
+        android:id="@+id/fabric_installer_label_loader_ver"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_6sdp"
+        android:text="@string/fabric_dl_loader_version"
+        android:textColor="#8EE07F"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/nick_fab_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fabric_installer_game_ver_spinner" />
+
+    <Spinner
+        android:id="@+id/fabric_installer_loader_ver_spinner"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_4sdp"
+        android:layout_marginEnd="@dimen/_6sdp"
+        android:background="@drawable/nick_card_bg"
+        android:minHeight="@dimen/_32sdp"
+        android:paddingStart="10dp"
+        android:paddingEnd="28dp"
+        app:layout_constraintEnd_toStartOf="@id/nick_fab_split"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/fabric_installer_label_loader_ver" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/_8sdp"
+        android:paddingHorizontal="@dimen/_8sdp"
+        android:rotation="180"
+        android:src="@drawable/spinner_arrow"
+        app:layout_constraintBottom_toBottomOf="@+id/fabric_installer_loader_ver_spinner"
+        app:layout_constraintEnd_toEndOf="@+id/fabric_installer_loader_ver_spinner"
+        app:layout_constraintTop_toTopOf="@+id/fabric_installer_loader_ver_spinner" />
+
+    <!-- right column: options + install -->
+    <TextView
+        android:id="@+id/fabric_installer_label_options"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_6sdp"
+        android:text="@string/mcl_options"
+        android:textColor="#8EE07F"
+        android:textStyle="bold"
+        app:layout_constraintBaseline_toBaselineOf="@id/fabric_installer_label_game_ver"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/nick_fab_split" />
+
+    <CheckBox
+        android:id="@+id/fabric_installer_only_stable_checkbox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_6sdp"
+        android:layout_marginTop="@dimen/_4sdp"
+        android:background="@drawable/nick_card_bg"
+        android:buttonTint="#5EC84F"
+        android:checked="true"
+        android:minHeight="@dimen/_32sdp"
+        android:paddingHorizontal="8dp"
+        android:text="@string/fabric_dl_only_stable"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/nick_fab_split"
+        app:layout_constraintTop_toBottomOf="@id/fabric_installer_label_options" />
+
+    <LinearLayout
+        android:id="@+id/fabric_installer_retry_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_6sdp"
+        android:layout_marginTop="@dimen/_8sdp"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/nick_fab_split"
+        app:layout_constraintTop_toBottomOf="@id/fabric_installer_only_stable_checkbox">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:text="@string/modloader_dl_failed_to_load_list"
+            android:textColor="#FFE5484D"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/fabric_installer_retry_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/global_retry" />
+    </LinearLayout>
+
+    <com.kdt.mcgui.MineButton
+        android:id="@+id/fabric_installer_start_button"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/_40sdp"
+        android:layout_marginStart="@dimen/_6sdp"
+        android:layout_marginBottom="@dimen/_8sdp"
+        android:enabled="false"
+        android:text="@string/fabric_dl_install"
+        app:layout_constraintBottom_toTopOf="@+id/fabric_installer_progress_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/nick_fab_split" />
+
+    <ProgressBar
+        android:id="@+id/fabric_installer_progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateTint="#5EC84F"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

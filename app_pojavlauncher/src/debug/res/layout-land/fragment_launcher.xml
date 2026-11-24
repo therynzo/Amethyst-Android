@@ -8,6 +8,18 @@
     android:layout_height="match_parent"
     android:background="@color/background_app">
 
+    <ImageView
+        android:id="@+id/nick_background"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:src="@drawable/nick_bg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/nick_split"
         android:layout_width="0dp"
@@ -15,70 +27,19 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.62" />
 
-    <!-- Hero card -->
-    <FrameLayout
-        android:id="@+id/nick_hero_card"
+    <!-- 3D skin of the selected account, with name tag on top -->
+    <com.kdt.mcgui.NickSkinView
+        android:id="@+id/nick_skin_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="@dimen/_8sdp"
         android:layout_marginTop="@dimen/_4sdp"
         android:layout_marginEnd="@dimen/_4sdp"
-        android:layout_marginBottom="@dimen/_8sdp"
-        android:background="@drawable/nick_hero_frame"
-        android:clipToOutline="true"
+        android:layout_marginBottom="@dimen/_4sdp"
         app:layout_constraintBottom_toTopOf="@id/mc_version_spinner"
         app:layout_constraintEnd_toStartOf="@id/nick_split"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:importantForAccessibility="no"
-            android:scaleType="centerCrop"
-            android:src="@drawable/nick_hero" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@drawable/nick_hero_scrim" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="bottom|start"
-            android:orientation="vertical"
-            android:padding="@dimen/_14sdp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/nick_pill"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:text="JAVA EDITION"
-                android:textColor="#8EE07F"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="Nick Launcher"
-                android:textColor="#FFFFFF"
-                android:textSize="26sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="Play Minecraft: Java Edition on your phone."
-                android:textColor="@color/secondary_text"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </FrameLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Version picker + edit + big green PLAY button -->
     <com.kdt.mcgui.mcVersionSpinner
@@ -120,7 +81,6 @@
         android:minWidth="@dimen/_100sdp"
         android:text="@string/main_play"
         android:textAllCaps="true"
-        android:textColor="#FFFFFF"
         app:layout_constraintBottom_toBottomOf="@+id/mc_version_spinner"
         app:layout_constraintEnd_toStartOf="@id/nick_split"
         app:layout_constraintStart_toEndOf="@id/edit_profile_button"
@@ -151,7 +111,7 @@
                 android:layout_height="@dimen/_36sdp"
                 android:layout_marginBottom="@dimen/_5sdp"
                 android:background="@drawable/nick_card_bg"
-                android:drawableStart="@drawable/ic_menu_news"
+                android:drawableStart="@drawable/nick_ic_news"
                 android:text="@string/mcl_tab_wiki" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -161,7 +121,7 @@
                 android:layout_height="@dimen/_36sdp"
                 android:layout_marginBottom="@dimen/_5sdp"
                 android:background="@drawable/nick_card_bg"
-                android:drawableStart="@drawable/ic_discord"
+                android:drawableStart="@drawable/nick_ic_forum"
                 android:text="@string/mcl_button_discord" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -171,7 +131,7 @@
                 android:layout_height="@dimen/_36sdp"
                 android:layout_marginBottom="@dimen/_5sdp"
                 android:background="@drawable/nick_card_bg"
-                android:drawableStart="@drawable/ic_menu_custom_controls"
+                android:drawableStart="@drawable/nick_ic_gamepad"
                 android:text="@string/mcl_option_customcontrol" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -181,7 +141,7 @@
                 android:layout_height="@dimen/_36sdp"
                 android:layout_marginBottom="@dimen/_5sdp"
                 android:background="@drawable/nick_card_bg"
-                android:drawableStart="@drawable/ic_menu_install_jar"
+                android:drawableStart="@drawable/nick_ic_extension"
                 android:text="@string/main_install_jar_file" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -191,7 +151,7 @@
                 android:layout_height="@dimen/_36sdp"
                 android:layout_marginBottom="@dimen/_5sdp"
                 android:background="@drawable/nick_card_bg"
-                android:drawableStart="@android:drawable/ic_menu_share"
+                android:drawableStart="@drawable/nick_ic_description"
                 android:text="@string/main_share_logs" />
 
             <com.kdt.mcgui.LauncherMenuButton
@@ -200,7 +160,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/_36sdp"
                 android:background="@drawable/nick_card_bg"
-                android:drawableStart="@drawable/ic_folder"
+                android:drawableStart="@drawable/nick_ic_folder"
                 android:text="@string/mcl_button_open_directory" />
         </LinearLayout>
     </ScrollView>
