@@ -2,6 +2,8 @@ package net.kdt.pojavlaunch.nick;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -16,6 +18,8 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.util.LruCache;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -27,6 +31,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import net.kdt.pojavlaunch.R;
 import net.kdt.pojavlaunch.Tools;
 import net.kdt.pojavlaunch.value.launcherprofiles.LauncherProfiles;
 import net.kdt.pojavlaunch.value.launcherprofiles.MinecraftProfile;
@@ -41,6 +46,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +64,8 @@ public final class NickContentBrowser {
     private static final String[] TYPE_DIR = {"mods", "resourcepacks", "shaderpacks"};
 
     private static final class Hit {
-        String id, title, author, desc;
+        String id, title, author, desc, iconUrl;
+        int src;
         long downloads;
     }
 
@@ -71,6 +79,70 @@ public final class NickContentBrowser {
     private TextView status;
     private BaseAdapter adapter;
     private int searchToken = 0;
+    private int source = 0; // 0 = Modrinth, 1 = CurseForge
+    private int offset = 0;
+    private boolean hasMore = false;
+    private Button moreBtn;
+    private final ExecutorService imgPool = Executors.newFixedThreadPool(3);
+    private final LruCache<String, Bitmap> imgCache = new LruCache<>(80);
+
+    private String cfKey() {
+        String k = act.getString(R.string.curseforge_api_key);
+        return (k == null || k.trim().isEmpty() || k.trim().equals("DUMMY")) ? null : k.trim();
+    }
+
+    private String cfGet(String address) {
+        HttpURLConnection c = null;
+        try {
+            c = (HttpURLConnection) new URL(address).openConnection();
+            c.setConnectTimeout(8000);
+            c.setReadTimeout(15000);
+            c.setRequestProperty("x-api-key", cfKey());
+            c.setRequestProperty("Accept", "application/json");
+            if (c.getResponseCode() != 200) return null;
+            try (InputStream in = c.getInputStream()) {
+                java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                return new String(out.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+            }
+        } catch (Throwable t) {
+            return null;
+        } finally {
+            if (c != null) c.disconnect();
+        }
+    }
+
+    private void loadIcon(final String url, final ImageView view) {
+        view.setTag(url);
+        view.setImageDrawable(null);
+        if (url == null) return;
+        Bitmap hit = imgCache.get(url);
+        if (hit != null) {
+            view.setImageBitmap(hit);
+            return;
+        }
+        imgPool.execute(() -> {
+            HttpURLConnection c = null;
+            try {
+                c = (HttpURLConnection) new URL(url).openConnection();
+                c.setConnectTimeout(6000);
+                c.setReadTimeout(8000);
+                try (InputStream in = c.getInputStream()) {
+                    Bitmap b = BitmapFactory.decodeStream(in);
+                    if (b == null) return;
+                    imgCache.put(url, b);
+                    act.runOnUiThread(() -> {
+                        if (url.equals(view.getTag())) view.setImageBitmap(b);
+                    });
+                }
+            } catch (Throwable ignored) {
+            } finally {
+                if (c != null) c.disconnect();
+            }
+        });
+    }
 
     private NickContentBrowser(Activity a) {
         act = a;
@@ -122,7 +194,7 @@ public final class NickContentBrowser {
         LinearLayout head = new LinearLayout(act);
         head.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = new TextView(act);
-        title.setText("Mod Browser");
+        title.setText("Mod Browser  •  Modrinth & CurseForge");
         title.setTextColor(Color.WHITE);
         title.setTextSize(18);
         title.setTypeface(Typeface.DEFAULT_BOLD);
@@ -181,6 +253,38 @@ public final class NickContentBrowser {
         styleChips(chips);
         root.addView(row);
 
+        // source switch
+        LinearLayout srcRow = new LinearLayout(act);
+        srcRow.setGravity(Gravity.CENTER_VERTICAL);
+        srcRow.setPadding(0, 0, 0, dp(4));
+        TextView from = new TextView(act);
+        from.setText("Source: ");
+        from.setTextColor(0xFFB0B0B8);
+        srcRow.addView(from);
+        final List<Button> srcChips = new ArrayList<>();
+        String[] srcNames = {"Modrinth", "CurseForge"};
+        for (int i = 0; i < 2; i++) {
+            final int idx = i;
+            Button c = new Button(act);
+            c.setText(srcNames[i]);
+            c.setAllCaps(false);
+            c.setTextSize(12);
+            c.setMinHeight(0);
+            c.setMinimumHeight(0);
+            c.setPadding(dp(12), 0, dp(12), 0);
+            c.setOnClickListener(v -> {
+                source = idx;
+                styleSrc(srcChips);
+                search();
+            });
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, dp(32));
+            lp.setMargins(0, 0, dp(6), 0);
+            srcRow.addView(c, lp);
+            srcChips.add(c);
+        }
+        styleSrc(srcChips);
+        root.addView(srcRow);
+
         // search
         LinearLayout sr = new LinearLayout(act);
         sr.setGravity(Gravity.CENTER_VERTICAL);
@@ -214,6 +318,10 @@ public final class NickContentBrowser {
         ListView list = new ListView(act);
         list.setDivider(null);
         list.setDividerHeight(dp(6));
+        moreBtn = greenButton("Load more");
+        moreBtn.setOnClickListener(v -> search(true));
+        moreBtn.setVisibility(View.GONE);
+        list.addFooterView(moreBtn);
         adapter = new HitAdapter();
         list.setAdapter(adapter);
         root.addView(list, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
@@ -221,6 +329,15 @@ public final class NickContentBrowser {
         dialog.setContentView(root);
         dialog.show();
         search();
+    }
+
+    private void styleSrc(List<Button> chips) {
+        for (int i = 0; i < chips.size(); i++) {
+            Button c = chips.get(i);
+            boolean on = i == source;
+            c.setTextColor(on ? 0xFF0A2A0A : Color.WHITE);
+            c.setBackground(on ? box(GREEN, 0xFF8EE07F, 6) : box(PANEL, 0x665EC84F, 6));
+        }
     }
 
     private void styleChips(List<Button> chips) {
@@ -256,58 +373,119 @@ public final class NickContentBrowser {
     // ------------------------------------------------------------------ search
 
     private void search() {
+        search(false);
+    }
+
+    private static int cfLoaderType(String loader) {
+        if (loader == null) return 0;
+        switch (loader) {
+            case "forge": return 1;
+            case "fabric": return 4;
+            case "quilt": return 5;
+            case "neoforge": return 6;
+            default: return 0;
+        }
+    }
+
+    private void search(final boolean append) {
         final int token = ++searchToken;
         final String q = searchBox.getText().toString().trim();
         final MinecraftProfile p = selectedProfile();
         final String mc = mcVersionOf(p);
         final String loader = NickModDeps.detectLoader(p.lastVersionId == null ? "" : p.lastVersionId);
         final int t = type;
+        final int src = source;
+        final int off = append ? offset : 0;
         status.setText("Searching...");
-        hits.clear();
-        adapter.notifyDataSetChanged();
+        if (!append) {
+            hits.clear();
+            offset = 0;
+            moreBtn.setVisibility(View.GONE);
+            adapter.notifyDataSetChanged();
+        }
+        if (src == 1 && cfKey() == null) {
+            status.setText("CurseForge needs a free API key. Add it as the GitHub secret CURSEFORGE_API_KEY and rebuild. Modrinth works without a key.");
+            return;
+        }
         new Thread(() -> {
             List<Hit> found = new ArrayList<>();
             String err = null;
+            int total = 0;
             try {
-                StringBuilder facets = new StringBuilder("[[\"project_type:" + TYPE_FACET[t] + "\"]");
-                if (mc != null) facets.append(",[\"versions:").append(mc).append("\"]");
-                if (t == 0 && loader != null) {
-                    String cat = "quilt".equals(loader) ? "quilt" : loader;
-                    facets.append(",[\"categories:").append(cat).append("\"");
-                    if ("quilt".equals(loader)) facets.append(",\"categories:fabric\"");
+                if (src == 0) {
+                    StringBuilder facets = new StringBuilder("[[\"project_type:" + TYPE_FACET[t] + "\"]");
+                    if (mc != null) facets.append(",[\"versions:").append(mc).append("\"]");
+                    if (t == 0 && loader != null) {
+                        facets.append(",[\"categories:").append(loader).append("\"");
+                        if ("quilt".equals(loader)) facets.append(",\"categories:fabric\"");
+                        facets.append("]");
+                    }
                     facets.append("]");
-                }
-                facets.append("]");
-                String url = API + "/search?query=" + Uri.encode(q) + "&limit=30&index=" + (q.isEmpty() ? "downloads" : "relevance")
-                        + "&facets=" + Uri.encode(facets.toString());
-                String body = NickModDeps.httpGet(url);
-                if (body == null) err = "No internet or Modrinth is unreachable.";
-                else {
-                    JsonArray arr = new JsonParser().parse(body).getAsJsonObject().getAsJsonArray("hits");
-                    for (JsonElement e : arr) {
-                        JsonObject o = e.getAsJsonObject();
-                        Hit h = new Hit();
-                        h.id = o.get("project_id").getAsString();
-                        h.title = o.get("title").getAsString();
-                        h.author = o.has("author") ? o.get("author").getAsString() : "";
-                        h.desc = o.has("description") ? o.get("description").getAsString() : "";
-                        h.downloads = o.has("downloads") ? o.get("downloads").getAsLong() : 0;
-                        found.add(h);
+                    String url = API + "/search?query=" + Uri.encode(q) + "&limit=30&offset=" + off + "&index="
+                            + (q.isEmpty() ? "downloads" : "relevance") + "&facets=" + Uri.encode(facets.toString());
+                    String body = NickModDeps.httpGet(url);
+                    if (body == null) err = "No internet or Modrinth is unreachable.";
+                    else {
+                        JsonObject root = new JsonParser().parse(body).getAsJsonObject();
+                        total = root.has("total_hits") ? root.get("total_hits").getAsInt() : 0;
+                        for (JsonElement e : root.getAsJsonArray("hits")) {
+                            JsonObject o = e.getAsJsonObject();
+                            Hit h = new Hit();
+                            h.id = o.get("project_id").getAsString();
+                            h.title = o.get("title").getAsString();
+                            h.author = optStr(o, "author") == null ? "" : optStr(o, "author");
+                            h.desc = optStr(o, "description") == null ? "" : optStr(o, "description");
+                            h.iconUrl = optStr(o, "icon_url");
+                            h.downloads = o.has("downloads") ? o.get("downloads").getAsLong() : 0;
+                            found.add(h);
+                        }
+                    }
+                } else {
+                    int[] classIds = {6, 12, 6552};
+                    StringBuilder url = new StringBuilder("https://api.curseforge.com/v1/mods/search?gameId=432&classId=" + classIds[t]
+                            + "&pageSize=30&index=" + off + "&sortOrder=desc&sortField=" + (q.isEmpty() ? 2 : 1));
+                    if (!q.isEmpty()) url.append("&searchFilter=").append(Uri.encode(q));
+                    if (mc != null) url.append("&gameVersion=").append(Uri.encode(mc));
+                    if (t == 0 && cfLoaderType(loader) != 0) url.append("&modLoaderType=").append(cfLoaderType(loader));
+                    String body = cfGet(url.toString());
+                    if (body == null) err = "CurseForge did not answer (check internet or API key).";
+                    else {
+                        JsonObject root = new JsonParser().parse(body).getAsJsonObject();
+                        JsonObject pg = root.has("pagination") ? root.getAsJsonObject("pagination") : null;
+                        total = pg != null && pg.has("totalCount") ? pg.get("totalCount").getAsInt() : 0;
+                        for (JsonElement e : root.getAsJsonArray("data")) {
+                            JsonObject o = e.getAsJsonObject();
+                            Hit h = new Hit();
+                            h.id = o.get("id").getAsString();
+                            h.title = o.get("name").getAsString();
+                            h.desc = optStr(o, "summary") == null ? "" : optStr(o, "summary");
+                            h.downloads = o.has("downloadCount") ? (long) o.get("downloadCount").getAsDouble() : 0;
+                            if (o.has("authors") && o.getAsJsonArray("authors").size() > 0)
+                                h.author = optStr(o.getAsJsonArray("authors").get(0).getAsJsonObject(), "name");
+                            if (h.author == null) h.author = "";
+                            if (o.has("logo") && o.get("logo").isJsonObject())
+                                h.iconUrl = optStr(o.getAsJsonObject("logo"), "thumbnailUrl");
+                            found.add(h);
+                        }
                     }
                 }
             } catch (Throwable ex) {
                 err = "Search failed.";
             }
             final String fErr = err;
+            final int fTotal = total;
             act.runOnUiThread(() -> {
                 if (token != searchToken) return;
-                hits.clear();
+                for (Hit h : found) h.src = src;
                 hits.addAll(found);
+                offset = off + found.size();
+                hasMore = fErr == null && offset < fTotal && !found.isEmpty();
+                moreBtn.setVisibility(hasMore ? View.VISIBLE : View.GONE);
                 adapter.notifyDataSetChanged();
                 String scope = (mc != null ? "Minecraft " + mc : "any version")
                         + (t == 0 && loader != null ? " / " + loader : "");
-                status.setText(fErr != null ? fErr : (found.isEmpty() ? "Nothing found for " + scope
-                        : found.size() + " results for " + scope));
+                status.setText(fErr != null ? fErr : (hits.isEmpty() ? "Nothing found for " + scope
+                        : hits.size() + " shown (" + fTotal + " total) for " + scope));
             });
         }, "NickBrowserSearch").start();
     }
@@ -326,7 +504,8 @@ public final class NickContentBrowser {
             String result;
             try {
                 List<String> done = new ArrayList<>();
-                installProject(h.id, h.title, t, mc, loader, dir, 0, done);
+                if (h.src == 1) installCurse(h.id, h.title, t, mc, loader, dir, 0, done);
+                else installProject(h.id, h.title, t, mc, loader, dir, 0, done);
                 result = done.isEmpty() ? "Already installed" : "Installed: " + join(done);
                 final boolean ok = true;
                 act.runOnUiThread(() -> {
@@ -396,6 +575,50 @@ public final class NickContentBrowser {
                 try {
                     installProject(pid, null, t, mc, loader, dir, depth + 1, done);
                 } catch (Exception ignored) { // a missing dependency must not undo the main install
+                }
+            }
+        }
+    }
+
+    private void installCurse(String modId, String titleHint, int t, String mc, String loader,
+                              File dir, int depth, List<String> done) throws Exception {
+        if (cfKey() == null) throw new Exception("no CurseForge API key");
+        StringBuilder url = new StringBuilder("https://api.curseforge.com/v1/mods/" + modId + "/files?pageSize=10");
+        if (mc != null) url.append("&gameVersion=").append(Uri.encode(mc));
+        if (t == 0 && cfLoaderType(loader) != 0) url.append("&modLoaderType=").append(cfLoaderType(loader));
+        String body = cfGet(url.toString());
+        if (body == null) throw new Exception("CurseForge did not answer");
+        JsonArray files = new JsonParser().parse(body).getAsJsonObject().getAsJsonArray("data");
+        if (files.size() == 0) throw new Exception("no compatible file for this profile");
+        JsonObject chosen = files.get(0).getAsJsonObject();
+        for (JsonElement f : files) { // prefer a release (releaseType 1)
+            JsonObject fo = f.getAsJsonObject();
+            if (fo.has("releaseType") && fo.get("releaseType").getAsInt() == 1) {
+                chosen = fo;
+                break;
+            }
+        }
+        String fileName = new File(chosen.get("fileName").getAsString()).getName();
+        String dl = optStr(chosen, "downloadUrl");
+        if (dl == null) {
+            long fid = chosen.get("id").getAsLong();
+            dl = "https://edge.forgecdn.net/files/" + (fid / 1000) + "/" + (fid % 1000) + "/" + Uri.encode(fileName);
+        }
+        String sha1 = null;
+        if (chosen.has("hashes")) {
+            for (JsonElement hEl : chosen.getAsJsonArray("hashes")) {
+                JsonObject ho = hEl.getAsJsonObject();
+                if (ho.has("algo") && ho.get("algo").getAsInt() == 1) sha1 = optStr(ho, "value");
+            }
+        }
+        if (downloadTo(dir, dl, fileName, sha1)) done.add(titleHint != null ? titleHint : fileName);
+        if (t == 0 && depth < 2 && chosen.has("dependencies")) {
+            for (JsonElement d : chosen.getAsJsonArray("dependencies")) {
+                JsonObject dep = d.getAsJsonObject();
+                if (!dep.has("relationType") || dep.get("relationType").getAsInt() != 3) continue; // 3 = required
+                try {
+                    installCurse(dep.get("modId").getAsString(), null, t, mc, loader, dir, depth + 1, done);
+                } catch (Exception ignored) {
                 }
             }
         }
@@ -478,6 +701,15 @@ public final class NickContentBrowser {
             row.setGravity(Gravity.CENTER_VERTICAL);
             row.setPadding(dp(12), dp(8), dp(12), dp(8));
             row.setBackground(box(PANEL, 0x335EC84F, 10));
+
+            ImageView icon = new ImageView(act);
+            icon.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            icon.setBackground(box(0xFF26262E, 0, 8));
+            icon.setClipToOutline(true);
+            loadIcon(h.iconUrl, icon);
+            LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(dp(48), dp(48));
+            ilp.setMargins(0, 0, dp(10), 0);
+            row.addView(icon, ilp);
 
             LinearLayout text = new LinearLayout(act);
             text.setOrientation(LinearLayout.VERTICAL);
