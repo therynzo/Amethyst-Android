@@ -228,6 +228,22 @@ public final class NickContentBrowser {
         profileSpinner.setAdapter(pa);
         profileSpinner.setSelection(sel);
         profileSpinner.setBackground(box(PANEL, 0x665EC84F, 8));
+        profileSpinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            private boolean first = true;
+
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                if (first) { // the initial callback; build() already starts a search
+                    first = false;
+                    return;
+                }
+                search();
+            }
+
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+            }
+        });
         row.addView(profileSpinner, new LinearLayout.LayoutParams(0, dp(36), 1f));
 
         final List<Button> chips = new ArrayList<>();
